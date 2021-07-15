@@ -1,0 +1,9 @@
+name: vne
+url: https://github.com/quantumjot/vne.git
+import: vne
+model: VNEModel
+args: None
+prediction_fn:
+    call: create_heterogenous_image
+    args:
+        X: dummy
