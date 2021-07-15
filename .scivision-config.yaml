@@ -4,6 +4,6 @@ import: vne
 model: VNEModel
 args: None
 prediction_fn:
-    call: create_heterogenous_image
+    call: create_heterogeneous_image
     args:
         X: dummy
