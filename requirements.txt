@@ -3,3 +3,5 @@ scipy
 pillow
 scikit-image
 scikit-learn
+dscribe
+ase
