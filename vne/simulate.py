@@ -4,6 +4,7 @@ import string
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
+from skimage.measure import regionprops
 from skimage.transform import rotate
 
 CHARS = string.ascii_lowercase + string.digits
@@ -38,20 +39,38 @@ def create_example(text: str, angle: float = 0.0) -> np.ndarray:
 
 
 def create_heterogeneous_image(shape: tuple, n_objects: int = 100):
-    """Create a big training image."""
+    """Create a big training image.
+
+    Returns
+    -------
+    image : np.ndarray
+        The simulated image.
+    bounding_boxes : list
+        A list of bounding boxes for each of the objects.
+    labels : list
+        A list of labels for each of the objects.
+    """
     big_image = np.zeros(shape, dtype=np.uint8)
     locations = np.random.randint(0, shape[0] - 64, (n_objects, 2))
+    labels = np.random.choice(list(CHARS), size=n_objects)
+    bounding_boxes = []
 
     for i in range(n_objects):
-        char = random.choice(CHARS)
+        char = labels[i]
         angle = random.randint(0, 360)
         sx = slice(locations[i, 0], locations[i, 0] + 64)
         sy = slice(locations[i, 1], locations[i, 1] + 64)
-        big_image[sx, sy] = np.maximum(
-            big_image[sx, sy], create_example(char, angle)
-        )
 
-    return big_image
+        example = create_example(char, angle)
+
+        # hack to get the rotated bounding box
+        props = regionprops(example.astype(bool).astype(int))
+        bbox = np.array(props[0].bbox) + np.concatenate([locations[i, :]] * 2)
+        bounding_boxes.append(bbox)
+
+        big_image[sx, sy] = np.maximum(big_image[sx, sy], example,)
+
+    return big_image, bounding_boxes, labels
 
 
 if __name__ == "__main__":
