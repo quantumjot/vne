@@ -64,7 +64,7 @@ def create_heterogeneous_image(
         A list of labels for each of the objects.
     """
 
-    assert shape.ndim == 2
+    assert len(shape) == 2
 
     big_image = np.zeros(shape, dtype=np.uint8)
     locations = np.random.randint(0, shape[0] - 64, (n_objects, 2))
