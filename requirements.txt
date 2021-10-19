@@ -5,4 +5,4 @@ scikit-image
 scikit-learn
 #dscribe
 #ase
-pytorch
+torch
