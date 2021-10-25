@@ -122,6 +122,7 @@ def create_heterogeneous_image_with_shapes(
         (Optional) The input array with all the bounding boxes.
     input_labels : ndarray
         (Optional) The input array of the labels for each bounding box.
+    
     Returns
     -------
     image : np.ndarray
