@@ -107,13 +107,13 @@ def create_heterogeneous_image_with_shapes(
     input_bbox: np.ndarray = None, 
     input_labels: np.ndarray = None,
 ) -> Tuple[np.ndarray]:
-    """Create a big training image.
+    """Create a shape made of letters in a big training image.
     Parameters
     ----------
     shape : tuple(int)
         The shape of the output image.
     n_objects : int
-        The number of simulated objects.
+        The number of points between which the shapes are created.
     return_masks : bool
         Option to return binary masks for each object as (N, W, H) array.
     input_image : ndarray
@@ -138,7 +138,7 @@ def create_heterogeneous_image_with_shapes(
     if input_image is None:
         big_image, pre_bbox, pre_labels = simulate.create_heterogeneous_image(shape, n_objects = 100)
         if pre_bbox is None or pre_labels is None:
-            print("error")
+            raise ValueError("Not enough information provided: labels or bounding boxes missing.")
     else:
         big_image = input_image
         pre_bbox = input_bbox
@@ -150,19 +150,18 @@ def create_heterogeneous_image_with_shapes(
     
     x = np.rint(x).astype(int)
     y = np.rint(y).astype(int)
-    print(y)
     if return_masks:
         masks = np.zeros((n_objects,) + shape, dtype=np.uint8)
 
-    #for i in range(n_objects):
+    # TO DO (bcg): make the character choice an option, or random
     char = labels[0]
     angle = random.randint(0, 360)
     
         
         
     example = simulate.create_example(str(char), angle)
-        #print(char.dtype,angle)
-        # hack to get the rotated bounding box
+
+
     props = regionprops(example.astype(bool).astype(int))
     for j in range(x.shape[0]):
         sx = slice(x[j], x[j] + 64)
@@ -175,12 +174,12 @@ def create_heterogeneous_image_with_shapes(
         if return_masks:
             masks[i, sx, sy] = example.astype(bool).astype(np.uint8)
                 
-    #print(len(bounding_boxes))
     for box in pre_bbox:
         bounding_boxes.append(box)
-    #print(len(bounding_boxes))
+        
     np.append(labels,pre_labels)
     if return_masks:
+        # TO DO (bcg): add the masks of the newly created objects
         return big_image, bounding_boxes, labels, masks
 
     return big_image, bounding_boxes, labels
