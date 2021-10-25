@@ -100,7 +100,12 @@ def create_heterogeneous_image(
     return big_image, bounding_boxes, labels
 
 def create_heterogeneous_image_with_shapes(
-    shape: Tuple[int], n_objects: int = 100, return_masks: bool = False, input_image: np.ndarray = None, input_bbox: np.ndarray = None, input_labels: np.ndarray = None
+    shape: Tuple[int], 
+    n_objects: int = 100, 
+    return_masks: bool = False, 
+    input_image: np.ndarray = None, 
+    input_bbox: np.ndarray = None, 
+    input_labels: np.ndarray = None,
 ) -> Tuple[np.ndarray]:
     """Create a big training image.
     Parameters
