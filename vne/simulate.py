@@ -3,6 +3,8 @@ import random
 import string
 from typing import Tuple
 
+from . import shapes
+
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from skimage.measure import regionprops
@@ -93,6 +95,91 @@ def create_heterogeneous_image(
             masks[i, sx, sy] = example.astype(bool).astype(np.uint8)
 
     if return_masks:
+        return big_image, bounding_boxes, labels, masks
+
+    return big_image, bounding_boxes, labels
+
+def create_heterogeneous_image_with_shapes(
+    shape: Tuple[int], 
+    n_objects: int = 100, 
+    return_masks: bool = False, 
+    input_image: np.ndarray = None, 
+    input_bbox: np.ndarray = None, 
+    input_labels: np.ndarray = None,
+) -> Tuple[np.ndarray]:
+    """Create a shape made of letters in a big training image.
+    Parameters
+    ----------
+    shape : tuple(int)
+        The shape of the output image.
+    n_objects : int
+        The number of points between which the shapes are created.
+    return_masks : bool
+        Option to return binary masks for each object as (N, W, H) array.
+    input_image : ndarray
+        (Optional) The input image on which to add the shape.
+    input_bbox : ndarray
+        (Optional) The input array with all the bounding boxes.
+    input_labels : ndarray
+        (Optional) The input array of the labels for each bounding box.
+    
+    Returns
+    -------
+    image : np.ndarray
+        The simulated image.
+    bounding_boxes : list
+        A list of bounding boxes for each of the objects.
+    labels : list
+        A list of labels for each of the objects.
+    """
+
+    assert len(shape) == 2
+    
+    if input_image is None:
+        big_image, pre_bbox, pre_labels = simulate.create_heterogeneous_image(shape, n_objects = 100)
+        if pre_bbox is None or pre_labels is None:
+            raise ValueError("Not enough information provided: labels or bounding boxes missing.")
+    else:
+        big_image = input_image
+        pre_bbox = input_bbox
+        pre_labels = input_labels
+    locations = np.random.randint(0, shape[0] - 64, (n_objects, 2))
+    labels = np.random.choice(list(CHARS), size=n_objects)
+    bounding_boxes = []
+    x,y, _ = get_bezier_curve(locations)
+    
+    x = np.rint(x).astype(int)
+    y = np.rint(y).astype(int)
+    if return_masks:
+        masks = np.zeros((n_objects,) + shape, dtype=np.uint8)
+
+    # TO DO (bcg): make the character choice an option, or random
+    char = labels[0]
+    angle = random.randint(0, 360)
+    
+        
+        
+    example = simulate.create_example(str(char), angle)
+
+
+    props = regionprops(example.astype(bool).astype(int))
+    for j in range(x.shape[0]):
+        sx = slice(x[j], x[j] + 64)
+        sy = slice(y[j], y[j] + 64)
+        bbox = np.array(props[0].bbox) + np.concatenate([np.array([int(x[j]),int(y[j])])]*2)
+        bounding_boxes.append(bbox)
+
+        big_image[sx, sy] = np.maximum(big_image[sx, sy], example,)
+
+        if return_masks:
+            masks[i, sx, sy] = example.astype(bool).astype(np.uint8)
+                
+    for box in pre_bbox:
+        bounding_boxes.append(box)
+        
+    np.append(labels,pre_labels)
+    if return_masks:
+        # TO DO (bcg): add the masks of the newly created objects
         return big_image, bounding_boxes, labels, masks
 
     return big_image, bounding_boxes, labels
