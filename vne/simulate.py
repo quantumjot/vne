@@ -136,7 +136,7 @@ def create_heterogeneous_image_with_shapes(
     assert len(shape) == 2
     
     if input_image is None:
-        big_image, pre_bbox, pre_labels = simulate.create_heterogeneous_image(shape, n_objects = 100)
+        big_image, pre_bbox, pre_labels = create_heterogeneous_image(shape, n_objects = 100)
         if pre_bbox is None or pre_labels is None:
             raise ValueError("Not enough information provided: labels or bounding boxes missing.")
     else:
