@@ -146,7 +146,7 @@ def create_heterogeneous_image_with_shapes(
     locations = np.random.randint(0, shape[0] - 64, (n_objects, 2))
     labels = np.random.choice(list(CHARS), size=n_objects)
     bounding_boxes = []
-    x,y, _ = get_bezier_curve(locations)
+    x,y, _ = shapes.get_bezier_curve(locations)
     
     x = np.rint(x).astype(int)
     y = np.rint(y).astype(int)
