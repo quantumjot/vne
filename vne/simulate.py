@@ -159,7 +159,7 @@ def create_heterogeneous_image_with_shapes(
     
         
         
-    example = simulate.create_example(str(char), angle)
+    example = create_example(str(char), angle)
 
 
     props = regionprops(example.astype(bool).astype(int))
