@@ -15,7 +15,7 @@ DEFAULT_FONT = ImageFont.load_default()
 
 
 def set_default_font(filename: os.PathLike, size: int):
-    """Set the feault font from a file."""
+    """Set the default font from a file."""
     font = ImageFont.truetype(filename, size)
     global DEFAULT_FONT
     DEFAULT_FONT = font
@@ -62,7 +62,7 @@ def create_heterogeneous_image(
         The simulated image.
     bounding_boxes : list
         A list of bounding boxes for each of the objects.
-    labels : list
+    labels : np.ndarray
         A list of labels for each of the objects.
     """
 
