@@ -129,5 +129,7 @@ dmypy.json
 .pyre/
 
 
-fonts/
+special/fonts/
 .DS_Store
+.png
+.pdf

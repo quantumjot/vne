@@ -1,24 +1,57 @@
 import os
 import random
 import string
-from typing import Tuple
-
-from . import shapes
+from typing import Optional, Tuple
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from skimage.measure import regionprops
 from skimage.transform import rotate
 
+from . import shapes
+
 CHARS = string.ascii_lowercase + string.digits
-DEFAULT_FONT = ImageFont.load_default()
+DEFAULT_FONT = None  # ImageFont.load_default()
 
 
-def set_default_font(filename: os.PathLike, size: int):
+def _download_default_font():
+    """Download a default font and return the filename."""
+
+    import io
+    import zipfile
+
+    import requests
+
+    font_url = "https://fonts.google.com/download?family=Open%20Sans"
+    r = requests.get(font_url)
+
+    zip_path = os.path.join(os.path.dirname(__file__), "special", "font")
+
+    font_file = os.path.join(
+        zip_path, "static", "OpenSans", "OpenSans-Regular.ttf"
+    )
+
+    if os.path.exists(font_file):
+        return font_file
+
+    buffer = io.BytesIO(r.content)
+
+    with zipfile.ZipFile(buffer, "r") as zip_ref:
+        zip_ref.extractall(zip_path)
+
+    assert os.path.exists(font_file)
+    return font_file
+
+
+def set_default_font(filename: Optional[os.PathLike] = None, size: int = 36):
     """Set the default font from a file."""
+    if not filename:
+        filename = _download_default_font()
+
     font = ImageFont.truetype(filename, size)
     global DEFAULT_FONT
     DEFAULT_FONT = font
+
 
 def check_number(input: float, max: float):
     """Enforces coordinates to an interval of valid values """
@@ -30,6 +63,7 @@ def check_number(input: float, max: float):
     else:
         output = input
     return output
+
 
 def create_example(text: str, angle: float = 0.0) -> np.ndarray:
     """Create an example character with a random translational offset and
@@ -52,7 +86,7 @@ def create_example(text: str, angle: float = 0.0) -> np.ndarray:
 
 
 def create_heterogeneous_image(
-        shape: Tuple[int], n_objects: int = 100, return_masks: bool = False
+    shape: Tuple[int], n_objects: int = 100, return_masks: bool = False
 ) -> Tuple[np.ndarray]:
     """Create a big training image.
 
@@ -99,7 +133,7 @@ def create_heterogeneous_image(
         bbox = np.array(props[0].bbox) + np.concatenate([locations[i, :]] * 2)
         bounding_boxes.append(bbox)
 
-        big_image[sx, sy] = np.maximum(big_image[sx, sy], example, )
+        big_image[sx, sy] = np.maximum(big_image[sx, sy], example,)
 
         if return_masks:
             masks[i, sx, sy] = example.astype(bool).astype(np.uint8)
@@ -111,12 +145,12 @@ def create_heterogeneous_image(
 
 
 def create_heterogeneous_image_with_shapes(
-        shape: Tuple[int],
-        n_objects: int = 100,
-        return_masks: bool = False,
-        input_image: np.ndarray = None,
-        input_bbox: np.ndarray = None,
-        input_labels: np.ndarray = None,
+    shape: Tuple[int],
+    n_objects: int = 100,
+    return_masks: bool = False,
+    input_image: np.ndarray = None,
+    input_bbox: np.ndarray = None,
+    input_labels: np.ndarray = None,
 ) -> Tuple[np.ndarray]:
     """Create a shape made of letters in a big training image.
     Parameters
@@ -133,7 +167,7 @@ def create_heterogeneous_image_with_shapes(
         (Optional) The input array with all the bounding boxes.
     input_labels : ndarray
         (Optional) The input array of the labels for each bounding box.
-    
+
     Returns
     -------
     image : np.ndarray
@@ -149,7 +183,7 @@ def create_heterogeneous_image_with_shapes(
     if input_image is None:
         big_image, pre_bbox, pre_labels = create_heterogeneous_image(shape)
         if pre_bbox is None or pre_labels is None:
-            raise ValueError("Not enough information provided: labels or bounding boxes missing.")
+            raise ValueError("Labels or bounding boxes missing.")
     else:
         big_image = input_image
         pre_bbox = input_bbox
@@ -177,10 +211,12 @@ def create_heterogeneous_image_with_shapes(
         sx = slice(x[j], x[j] + 64)
         sy = slice(y[j], y[j] + 64)
 
-        bbox = np.array(props[0].bbox) + np.concatenate([np.array([int(x[j]), int(y[j])])] * 2)
+        bbox = np.array(props[0].bbox) + np.concatenate(
+            [np.array([int(x[j]), int(y[j])])] * 2
+        )
         bounding_boxes.append(bbox)
 
-        big_image[sx, sy] = np.maximum(big_image[sx, sy], example, )
+        big_image[sx, sy] = np.maximum(big_image[sx, sy], example,)
 
         if return_masks:
             masks[j, sx, sy] = example.astype(bool).astype(np.uint8)
