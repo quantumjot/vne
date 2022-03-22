@@ -13,29 +13,56 @@ lmax = 9
 soap = SOAP(species=species, periodic=False, rcut=rcut, nmax=nmax, lmax=lmax,)
 
 
-def image_to_atoms(image: np.ndarray) -> Atoms:
+def image_to_atoms(image: np.array) -> Atoms:
     """Convert a binary image to an atomic description compatible with SOAPs.
 
     Parameters
     ----------
-    image : np.ndarray
-        The binary image to convert.
+    image : np.array
+        The binary image to convert, can be 2- or 3-dimensional.
 
     Returns
     -------
     atoms : ase.Atoms
         The description of the binary image as Atoms.
     """
+    if image.ndim not in (2, 3):
+        raise ValueError("Image data should be 2- or 3- dimensional.")
+
     coords = np.nonzero(image)
-    positions = [(i + 0.5, j + 0.5, 0.0) for i, j in zip(*coords)]
+
+    if image.ndim == 2:
+        coords += (np.zeros_like(coords[0]),)
+
+    coords = np.stack(coords, axis=-1) + 0.5
+    positions = coords.tolist()
     symbols = ["H"] * len(positions)
     atoms = Atoms(symbols=symbols, positions=positions)
     return atoms
 
 
-def image_to_features(image: np.ndarray) -> np.ndarray:
-    """Calculate the features from an image."""
+def image_to_features(image: np.array) -> np.array:
+    """Calculate the features from an image.
+
+    Parameters
+    ----------
+    image : np.ndarray
+        The binary image to convert, can be 2- or 3-dimensional.
+
+    Returns
+    -------
+    features : np.array
+        The SOAP descriptor features.
+    """
+
+    if image.ndim not in (2, 3):
+        raise ValueError("Image data should be 2- or 3- dimensional.")
+
+    positions = [dim / 2 for dim in image.shape]
+
+    if image.ndim == 2:
+        positions += [0.5]
 
     atoms = image_to_atoms(image)
-    features = soap.create(atoms, positions=([32, 32, 0],))
+    features = soap.create(atoms, positions=[positions],)
     return features  # normalize(features)
