@@ -20,7 +20,7 @@ def _distance_metric(dist: float) -> float:
 def similarity(
     *args: np.ndarray,
     metric: Callable = _distance_metric,
-    normalize_features: bool = True
+    normalize_features: bool = True,
 ) -> float:
     """Calculate the similarity of two feature vectors.
 
