@@ -10,7 +10,13 @@ nmax = 16
 lmax = 9
 
 # Setting up the SOAP descriptor
-soap = SOAP(species=species, periodic=False, rcut=rcut, nmax=nmax, lmax=lmax,)
+soap = SOAP(
+    species=species,
+    periodic=False,
+    rcut=rcut,
+    nmax=nmax,
+    lmax=lmax,
+)
 
 
 def image_to_atoms(image: np.ndarray) -> Atoms:

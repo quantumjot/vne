@@ -1,7 +1,9 @@
 import os
 import random
 import string
+
 from typing import Optional, Tuple
+
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -54,7 +56,7 @@ def set_default_font(filename: Optional[os.PathLike] = None, size: int = 36):
 
 
 def check_number(input: float, max: float):
-    """Enforces coordinates to an interval of valid values """
+    """Enforces coordinates to an interval of valid values"""
     max = max - 64
     if input < 0:
         output = 0
