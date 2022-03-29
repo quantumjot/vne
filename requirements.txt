@@ -1,5 +1,6 @@
 numpy
 pillow
+requests
 scikit-image
 scikit-learn
 scipy
