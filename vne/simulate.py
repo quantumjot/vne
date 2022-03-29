@@ -1,9 +1,7 @@
 import os
 import random
 import string
-
 from typing import Optional, Tuple
-
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -135,7 +133,10 @@ def create_heterogeneous_image(
         bbox = np.array(props[0].bbox) + np.concatenate([locations[i, :]] * 2)
         bounding_boxes.append(bbox)
 
-        big_image[sx, sy] = np.maximum(big_image[sx, sy], example,)
+        big_image[sx, sy] = np.maximum(
+            big_image[sx, sy],
+            example,
+        )
 
         if return_masks:
             masks[i, sx, sy] = example.astype(bool).astype(np.uint8)
@@ -218,7 +219,10 @@ def create_heterogeneous_image_with_shapes(
         )
         bounding_boxes.append(bbox)
 
-        big_image[sx, sy] = np.maximum(big_image[sx, sy], example,)
+        big_image[sx, sy] = np.maximum(
+            big_image[sx, sy],
+            example,
+        )
 
         if return_masks:
             masks[j, sx, sy] = example.astype(bool).astype(np.uint8)
