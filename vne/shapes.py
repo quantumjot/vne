@@ -1,9 +1,12 @@
-""" Code adapted from https://stackoverflow.com/questions/50731785/create-random-shape-contour-using-matplotlib """
+"""Code adapted from: https://stackoverflow.com/questions/50731785/
+create-random-shape-contour-using-matplotlib"""
 
 import numpy as np
 from scipy.special import binom
 
-bernstein = lambda n, k, t: binom(n, k) * t ** k * (1. - t) ** (n - k)
+
+def bernstein(n, k, t):
+    return binom(n, k) * t**k * (1.0 - t) ** (n - k)
 
 
 def bezier(points, num=50):
@@ -31,17 +34,28 @@ class Segment:
         self.calc_intermediate_points()
 
     def calc_intermediate_points(self):
-        self.p[1, :] = self.p1 + np.array([self.r * np.cos(self.angle1),
-                                           self.r * np.sin(self.angle1)])
-        self.p[2, :] = self.p2 + np.array([self.r * np.cos(self.angle2 + np.pi),
-                                           self.r * np.sin(self.angle2 + np.pi)])
+        self.p[1, :] = self.p1 + np.array(
+            [self.r * np.cos(self.angle1), self.r * np.sin(self.angle1)]
+        )
+        self.p[2, :] = self.p2 + np.array(
+            [
+                self.r * np.cos(self.angle2 + np.pi),
+                self.r * np.sin(self.angle2 + np.pi),
+            ]
+        )
         self.curve = bezier(self.p, self.numpoints)
 
 
 def get_curve(points, **kw):
     segments = []
     for i in range(len(points) - 1):
-        seg = Segment(points[i, :2], points[i + 1, :2], points[i, 2], points[i + 1, 2], **kw)
+        seg = Segment(
+            points[i, :2],
+            points[i + 1, :2],
+            points[i, 2],
+            points[i + 1, 2],
+            **kw,
+        )
         segments.append(seg)
     curve = np.concatenate([s.curve for s in segments])
     return segments, curve
@@ -54,18 +68,21 @@ def ccw_sort(p):
 
 
 def get_bezier_curve(a, rad=0.2, edgy=0):
-    """ given an array of points *a*, create a curve through
-    those points. 
+    """given an array of points *a*, create a curve through
+    those points.
     *rad* is a number between 0 and 1 to steer the distance of
           control points.
     *edgy* is a parameter which controls how "edgy" the curve is,
            edgy=0 is smoothest."""
-    p = np.arctan(edgy) / np.pi + .5
+
+    def f(ang):
+        return (ang >= 0) * ang + (ang < 0) * (ang + 2 * np.pi)
+
+    p = np.arctan(edgy) / np.pi + 0.5
     a = ccw_sort(a)
     a = np.append(a, np.atleast_2d(a[0, :]), axis=0)
     d = np.diff(a, axis=0)
     ang = np.arctan2(d[:, 1], d[:, 0])
-    f = lambda ang: (ang >= 0) * ang + (ang < 0) * (ang + 2 * np.pi)
     ang = f(ang)
     ang1 = ang
     ang2 = np.roll(ang, 1)
@@ -78,9 +95,9 @@ def get_bezier_curve(a, rad=0.2, edgy=0):
 
 
 def get_random_points(n=5, scale=0.8, mindst=None, rec=0):
-    """ create n random points in the unit square, which are *mindst*
+    """create n random points in the unit square, which are *mindst*
     apart, then scale them."""
-    mindst = mindst or .7 / n
+    mindst = mindst or 0.7 / n
     a = np.random.rand(n, 2)
     d = np.sqrt(np.sum(np.diff(ccw_sort(a), axis=0), axis=1) ** 2)
     if np.all(d >= mindst) or rec >= 200:
