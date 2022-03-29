@@ -1,7 +1,9 @@
 import os
 import random
 import string
-from typing import Tuple
+
+from typing import Optional, Tuple
+
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -11,11 +13,43 @@ from skimage.transform import rotate
 from . import shapes
 
 CHARS = string.ascii_lowercase + string.digits
-DEFAULT_FONT = ImageFont.load_default()
+DEFAULT_FONT = None  # ImageFont.load_default()
 
 
-def set_default_font(filename: os.PathLike, size: int):
+def _download_default_font():
+    """Download a default font and return the filename."""
+
+    import io
+    import zipfile
+
+    import requests
+
+    font_url = "https://fonts.google.com/download?family=Open%20Sans"
+    r = requests.get(font_url)
+
+    zip_path = os.path.join(os.path.dirname(__file__), "special", "font")
+
+    font_file = os.path.join(
+        zip_path, "static", "OpenSans", "OpenSans-Regular.ttf"
+    )
+
+    if os.path.exists(font_file):
+        return font_file
+
+    buffer = io.BytesIO(r.content)
+
+    with zipfile.ZipFile(buffer, "r") as zip_ref:
+        zip_ref.extractall(zip_path)
+
+    assert os.path.exists(font_file)
+    return font_file
+
+
+def set_default_font(filename: Optional[os.PathLike] = None, size: int = 36):
     """Set the default font from a file."""
+    if not filename:
+        filename = _download_default_font()
+
     font = ImageFont.truetype(filename, size)
     global DEFAULT_FONT
     DEFAULT_FONT = font
@@ -101,10 +135,7 @@ def create_heterogeneous_image(
         bbox = np.array(props[0].bbox) + np.concatenate([locations[i, :]] * 2)
         bounding_boxes.append(bbox)
 
-        big_image[sx, sy] = np.maximum(
-            big_image[sx, sy],
-            example,
-        )
+        big_image[sx, sy] = np.maximum(big_image[sx, sy], example,)
 
         if return_masks:
             masks[i, sx, sy] = example.astype(bool).astype(np.uint8)
@@ -187,10 +218,7 @@ def create_heterogeneous_image_with_shapes(
         )
         bounding_boxes.append(bbox)
 
-        big_image[sx, sy] = np.maximum(
-            big_image[sx, sy],
-            example,
-        )
+        big_image[sx, sy] = np.maximum(big_image[sx, sy], example,)
 
         if return_masks:
             masks[j, sx, sy] = example.astype(bool).astype(np.uint8)
