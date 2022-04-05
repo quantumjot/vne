@@ -89,7 +89,7 @@ def create_heterogeneous_image(
     n_objects: int = 100,
     return_masks: bool = False,
     rng=np.random.default_rng(),
-) -> Tuple[np.ndarray]:
+) -> Tuple:
     """Create a big training image.
 
     Parameters
@@ -157,7 +157,7 @@ def create_heterogeneous_image_with_shapes(
     input_bbox: Optional[np.ndarray] = None,
     input_labels: Optional[np.ndarray] = None,
     rng=np.random.default_rng(),
-) -> Tuple[np.ndarray]:
+) -> Tuple:
     """Create a shape made of letters in a big training image.
     Parameters
     ----------
