@@ -94,13 +94,13 @@ def get_bezier_curve(a, rad=0.2, edgy=0):
     return x, y, a
 
 
-def get_random_points(n=5, scale=0.8, mindst=None, rec=0):
+def get_random_points(n=5, scale=0.8, mindst=None, rec=0, rng=np.random.default_rng()):
     """create n random points in the unit square, which are *mindst*
     apart, then scale them."""
     mindst = mindst or 0.7 / n
-    a = np.random.rand(n, 2)
+    a = rng.random((n, 2))
     d = np.sqrt(np.sum(np.diff(ccw_sort(a), axis=0), axis=1) ** 2)
     if np.all(d >= mindst) or rec >= 200:
         return a * scale
     else:
-        return get_random_points(n=n, scale=scale, mindst=mindst, rec=rec + 1)
+        return get_random_points(n=n, scale=scale, mindst=mindst, rec=rec + 1, rng=rng)

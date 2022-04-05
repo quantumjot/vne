@@ -90,6 +90,7 @@ def convolve_with_ctf(
     density: np.ndarray,
     ctf: np.ndarray,
     add_poisson_noise: bool = True,
+    rng=np.random.default_rng()
 ) -> np.ndarray:
     """Convolve density with the CTF"""
 
@@ -102,7 +103,7 @@ def convolve_with_ctf(
     # add some poisson noise
     # NOTE(arl): this is not correct, just a starting point
     if add_poisson_noise:
-        img = np.random.poisson(img * 0.1)
+        img = rng.poisson(img * 0.1)
 
     return img
 
