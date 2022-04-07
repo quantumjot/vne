@@ -1,5 +1,4 @@
 import os
-import random
 import string
 from typing import Optional, Tuple
 
@@ -86,8 +85,11 @@ def create_example(text: str, angle: float = 0.0) -> np.ndarray:
 
 
 def create_heterogeneous_image(
-    shape: Tuple[int], n_objects: int = 100, return_masks: bool = False
-) -> Tuple[np.ndarray]:
+    shape: Tuple[int, ...],
+    n_objects: int = 100,
+    return_masks: bool = False,
+    rng=np.random.default_rng(),
+) -> Tuple:
     """Create a big training image.
 
     Parameters
@@ -113,8 +115,8 @@ def create_heterogeneous_image(
     assert len(shape) == 2
 
     big_image = np.zeros(shape, dtype=np.uint8)
-    locations = np.random.randint(0, shape[0] - 64, (n_objects, 2))
-    labels = np.random.choice(list(CHARS), size=n_objects)
+    locations = rng.integers(0, shape[0] - 64, (n_objects, 2))
+    labels = rng.choice(list(CHARS), size=n_objects)
     bounding_boxes = []
 
     if return_masks:
@@ -122,7 +124,7 @@ def create_heterogeneous_image(
 
     for i in range(n_objects):
         char = labels[i]
-        angle = random.randint(0, 360)
+        angle = rng.integers(0, 360)
         sx = slice(locations[i, 0], locations[i, 0] + 64)
         sy = slice(locations[i, 1], locations[i, 1] + 64)
 
@@ -151,10 +153,11 @@ def create_heterogeneous_image_with_shapes(
     shape: Tuple[int],
     n_objects: int = 100,
     return_masks: bool = False,
-    input_image: np.ndarray = None,
-    input_bbox: np.ndarray = None,
-    input_labels: np.ndarray = None,
-) -> Tuple[np.ndarray]:
+    input_image: Optional[np.ndarray] = None,
+    input_bbox: Optional[np.ndarray] = None,
+    input_labels: Optional[np.ndarray] = None,
+    rng=np.random.default_rng(),
+) -> Tuple:
     """Create a shape made of letters in a big training image.
     Parameters
     ----------
@@ -191,8 +194,8 @@ def create_heterogeneous_image_with_shapes(
         big_image = input_image
         pre_bbox = input_bbox
         pre_labels = input_labels
-    locations = np.random.randint(0, shape[0] - 64, (n_objects, 2))
-    labels = np.random.choice(list(CHARS), size=n_objects)
+    locations = rng.integers(0, shape[0] - 64, (n_objects, 2))
+    labels = rng.choice(list(CHARS), size=n_objects)
     bounding_boxes = []
     x, y, _ = shapes.get_bezier_curve(locations)
 
@@ -203,7 +206,7 @@ def create_heterogeneous_image_with_shapes(
 
     # TO DO (bcg): make the character choice an option, or random
     char = labels[0]
-    angle = random.randint(0, 360)
+    angle = rng.integers(0, 360)
 
     example = create_example(str(char), angle)
 

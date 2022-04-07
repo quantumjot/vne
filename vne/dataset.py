@@ -39,6 +39,7 @@ class SimulatedDataset(torch.utils.data.Dataset):
         size: Tuple[int] = (512, 512),
         return_masks: bool = False,
         transforms=None,
+        rng=np.random.default_rng(),
     ):
         super().__init__()
         self.transforms = transforms
@@ -49,15 +50,17 @@ class SimulatedDataset(torch.utils.data.Dataset):
         self.n_objects = n_objects
         self.image_size = size
         self.return_masks = return_masks
+        self.rng = rng
 
     def __getitem__(self, idx: int) -> Tuple[torch.tensor, dict, int]:
 
-        n_objects = np.random.randint(*self.n_objects)
+        n_objects = self.rng.integers(*self.n_objects)
 
         img, boxes, labels = self.simulator(
             self.image_size,
             n_objects=n_objects,
             return_masks=self.return_masks,
+            rng=self.rng,
         )
 
         # run the preprocessor to generate the final image
