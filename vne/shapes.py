@@ -6,7 +6,7 @@ from scipy.special import binom
 
 
 def bernstein(n, k, t):
-    return binom(n, k) * t**k * (1.0 - t) ** (n - k)
+    return binom(n, k) * t ** k * (1.0 - t) ** (n - k)
 
 
 def bezier(points, num=50):
@@ -94,7 +94,9 @@ def get_bezier_curve(a, rad=0.2, edgy=0):
     return x, y, a
 
 
-def get_random_points(n=5, scale=0.8, mindst=None, rec=0, rng=np.random.default_rng()):
+def get_random_points(
+    n=5, scale=0.8, mindst=None, rec=0, rng=np.random.default_rng()
+):
     """create n random points in the unit square, which are *mindst*
     apart, then scale them."""
     mindst = mindst or 0.7 / n
@@ -103,4 +105,6 @@ def get_random_points(n=5, scale=0.8, mindst=None, rec=0, rng=np.random.default_
     if np.all(d >= mindst) or rec >= 200:
         return a * scale
     else:
-        return get_random_points(n=n, scale=scale, mindst=mindst, rec=rec + 1, rng=rng)
+        return get_random_points(
+            n=n, scale=scale, mindst=mindst, rec=rec + 1, rng=rng
+        )
