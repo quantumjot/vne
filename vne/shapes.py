@@ -6,7 +6,7 @@ from scipy.special import binom
 
 
 def bernstein(n, k, t):
-    return binom(n, k) * t ** k * (1.0 - t) ** (n - k)
+    return binom(n, k) * t**k * (1.0 - t) ** (n - k)
 
 
 def bezier(points, num=50):

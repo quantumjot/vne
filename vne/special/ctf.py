@@ -66,7 +66,7 @@ def contrast_transfer_function(
     wavelength = electron_wavelength(1e3 * energy)
 
     phase_contrast = np.sqrt(1 - amplitude_contrast * amplitude_contrast)
-    k1 = np.pi / 2 * (1e7 * spherical_abberation) * (wavelength ** 3)
+    k1 = np.pi / 2 * (1e7 * spherical_abberation) * (wavelength**3)
     k2 = np.pi * wavelength
 
     gs = (
