@@ -66,7 +66,7 @@ def contrast_transfer_function(
     wavelength = electron_wavelength(1e3 * energy)
 
     phase_contrast = np.sqrt(1 - amplitude_contrast * amplitude_contrast)
-    k1 = np.pi / 2 * (1e7 * spherical_abberation) * (wavelength**3)
+    k1 = np.pi / 2 * (1e7 * spherical_abberation) * (wavelength ** 3)
     k2 = np.pi * wavelength
 
     gs = (
@@ -90,7 +90,7 @@ def convolve_with_ctf(
     density: np.ndarray,
     ctf: np.ndarray,
     add_poisson_noise: bool = True,
-    rng=np.random.default_rng()
+    rng=np.random.default_rng(),
 ) -> np.ndarray:
     """Convolve density with the CTF"""
 
