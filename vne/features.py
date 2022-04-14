@@ -68,5 +68,8 @@ def image_to_features(image: np.array) -> np.array:
         positions += [0.5]
 
     atoms = image_to_atoms(image)
-    features = soap.create(atoms, positions=[positions],)
+    features = soap.create(
+        atoms,
+        positions=[positions],
+    )
     return features  # normalize(features)
