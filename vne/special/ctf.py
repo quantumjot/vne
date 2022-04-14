@@ -1,7 +1,5 @@
 import numpy as np
-
-from scipy.signal import convolve2d, fftconvolve
-from scipy.fft import fft2, ifft2, fftshift
+from scipy.fft import fft2, fftshift, ifft2
 
 PLANCK_CONSTANT = 6.626e-34
 ELECTRON_CHARGE = 1.603e-19
@@ -11,9 +9,16 @@ ELECTRON_MASS = 9.109e-31
 
 def electron_wavelength(U: float) -> float:
     """Electron wavelength in units of Angstroms."""
-    numerator = PLANCK_CONSTANT / np.sqrt(2 * ELECTRON_MASS * ELECTRON_CHARGE * U)
-    denominator = np.sqrt(1 + ELECTRON_CHARGE * U / (2 * ELECTRON_MASS * SPEED_OF_LIGHT * SPEED_OF_LIGHT))
-    return  numerator / denominator * 1e10
+    numerator = PLANCK_CONSTANT / np.sqrt(
+        2 * ELECTRON_MASS * ELECTRON_CHARGE * U
+    )
+    denominator = np.sqrt(
+        1
+        + ELECTRON_CHARGE
+        * U
+        / (2 * ELECTRON_MASS * SPEED_OF_LIGHT * SPEED_OF_LIGHT)
+    )
+    return numerator / denominator * 1e10
 
 
 def contrast_transfer_function(
@@ -54,8 +59,8 @@ def contrast_transfer_function(
         The contrast transfer function as a numpy array in the range [-1, 1]
     Notes
     -----
-    Python implementation of the RELION compatible CTF model written by Takanori
-    Nakane at MRC-LMB. https://3dem.github.io/relion/ctf.html
+    Python implementation of the RELION compatible CTF model written by
+    Takanori Nakane at MRC-LMB. https://3dem.github.io/relion/ctf.html
     """
 
     wavelength = electron_wavelength(1e3 * energy)
@@ -64,7 +69,11 @@ def contrast_transfer_function(
     k1 = np.pi / 2 * (1e7 * spherical_abberation) * (wavelength**3)
     k2 = np.pi * wavelength
 
-    gs = np.linspace(-box_size/2, box_size/2, box_size) / box_size / pixel_size
+    gs = (
+        np.linspace(-box_size / 2, box_size / 2, box_size)
+        / box_size
+        / pixel_size
+    )
     xx, yy = np.meshgrid(gs, gs)
 
     angle = np.arctan2(yy, xx) - astigmatism_angle
@@ -86,7 +95,7 @@ def convolve_with_ctf(
 
     # perform the convolution
     img = np.multiply(fft2(-density), fftshift(ctf))
-    img = np.abs( ifft2(img) )
+    img = np.abs(ifft2(img))
 
     # calculate the PSF (just for fun)
     # psf = np.abs( fftshift(fft2(ctf)) )

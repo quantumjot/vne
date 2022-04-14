@@ -129,5 +129,14 @@ dmypy.json
 .pyre/
 
 
+
 fonts/
+vne/special/font/
 .DS_Store
+*.png
+*.npz
+*.gif
+*.pdb
+*.cif
+*.ipynb
+*.pth

@@ -1,8 +1,9 @@
 numpy
-scipy
 pillow
+requests
 scikit-image
 scikit-learn
+scipy
 #dscribe
 #ase
 torch
