@@ -2,8 +2,6 @@ import numpy as np
 from ase import Atoms
 from dscribe.descriptors import SOAP
 
-# from sklearn.preprocessing import normalize
-
 species = ["H"]
 rcut = 12.0
 nmax = 16
