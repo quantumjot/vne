@@ -52,7 +52,11 @@ class Protein_PDB:
         
     def _choose_symbols(self):
         """
-        Number of species 
+        Replaces some of the elements with C,N,O . 
+        The reason for this is that the number of unique elements in the protein
+        changes the number of features calculated by SOAP. Therefore we need all 
+        proteins to have the same number of species. 
+
         """
         elements =  ['C', 'N', 'O']
         self.symbols = [ x if x in elements else 'C' for x in self.symbols ]
@@ -76,7 +80,12 @@ def pdb_coord(protein : Protein_PDB)-> np.ndarray:
     return coords
 
 def pdb_centre(coords)-> np.ndarray:
-    # find the centre of the protein for SOAP calculation
+    '''
+    find the centre of the protein for SOAP calculation
+    Order the atoms in the descending order of distance from the central atom
+    This means the final elements in the coords is the central atom : coords[-1,-1,-1] 
+
+    '''
     
     protein_centre = []
     for i in range(3):
@@ -102,17 +111,28 @@ def pdb_centre(coords)-> np.ndarray:
     return new_coords
 
 def pdb_features(protein : Protein_PDB) -> np.array:
+
+    '''
+    Parameters
+    ----------
+    centre (int List) : indecies for the atom  closest to the geometric centre of the protein
+    rcut (float) : A cutoff for local region in angstroms. Should be bigger than 1 angstrom.
+    nmax (int) : The number of radial basis functions.
+    lmax (int) : The maximum degree of spherical harmonics.
+    '''
     coords = pdb_coord(protein)
     positions = coords.tolist()
     atoms = Atoms(symbols=protein.symbols, positions=positions)
     
-    # shift the centre to [0,0,0]
+    # shift the centre to the centre to the geometric centre of the protein
     coords = pdb_centre(coords)
     centre = [-1,-1,-1]
+
 
     rcut = 6.0
     nmax = 8
     lmax = 6
+
     # Setting up the SOAP descriptor
     soap = SOAP(
         species=protein.species,
@@ -124,11 +144,13 @@ def pdb_features(protein : Protein_PDB) -> np.array:
     
     features = soap.create(
         atoms,
-        positions=centre,
+        positions=coords,
     )
+    del coords
     return features  # normalize(features)
 
 def similarity_matrix(molecules):
+
     n_molecules = len(molecules)
     m = []
     for idx, c_i in enumerate(molecules):
@@ -136,6 +158,10 @@ def similarity_matrix(molecules):
         for jdx, c_j in enumerate(molecules):
             f_j = pdb_features(c_j)
             m.append(similarity(f_i, f_j))
+            del f_j
+            del c_j
+            print(idx,jdx)
+
     return np.reshape(m, (n_molecules, n_molecules))
 
 
