@@ -4,6 +4,8 @@ import numpy as np
 import torch
 from torch import nn
 
+from .base import SpatialDims
+
 
 class ShapeSimilarityLoss:
     """Shape similarity loss based on pre-calculated shape similarity.
@@ -61,42 +63,59 @@ class ShapeSimilarityLoss:
         return loss
 
 
+def dims_after_pooling(start: int, n_pools: int) -> int:
+    """Calculate the size of a layer after n pooling ops."""
+    return start // (2**n_pools)
+
+
 class ShapeVAE(nn.Module):
     """Shape regularized variational autoencoder.
 
     Parameters
     ----------
+    input_shape : tuple
+        A tuple representing the input shape of the data, e.g. (1, 64, 64) for
+        images or (1, 64, 64, 64) for a volume with 1 channel.
     latent_dims : int
         The size of the latent representation.
     pose_dims : int
         The size of the pose representation.
-    spatial_dims : int (2 or 3)
-        Planar of volumetric data.
-
     """
 
     def __init__(
-        self, latent_dims: int = 8, pose_dims: int = 1, spatial_dims: int = 2
+        self,
+        input_shape: Tuple[int] = (1, 64, 64),
+        latent_dims: int = 8,
+        pose_dims: int = 1,
     ):
         super(ShapeVAE, self).__init__()
 
-        if spatial_dims == 2:
-            conv = nn.Conv2d
-            conv_T = nn.ConvTranspose2d
-            unflat_shape = (64, 4, 4)
-        elif spatial_dims == 3:
-            conv = nn.Conv3d
-            conv_T = nn.ConvTranspose3d
-            unflat_shape = (64, 4, 4, 4)
-        else:
+        channels = input_shape[0]
+        spatial_dims = input_shape[1:]
+        ndim = len(spatial_dims)
+
+        if ndim not in SpatialDims:
             raise ValueError(
-                f"`spatial_dims` must be in (2, 3), got: {spatial_dims}."
+                f"`input_shape` must be have 2 or 3 dimensions, got: {ndim}."
             )
 
+        if ndim == SpatialDims.TWO:
+            conv = nn.Conv2d
+            conv_T = nn.ConvTranspose2d
+        elif ndim == SpatialDims.THREE:
+            conv = nn.Conv3d
+            conv_T = nn.ConvTranspose3d
+
+        unflat_shape = tuple(
+            [
+                64,
+            ]
+            + [dims_after_pooling(ax) for ax in spatial_dims]
+        )
         flat_shape = np.prod(unflat_shape)
 
         self.encoder = nn.Sequential(
-            conv(1, 8, 3, stride=2, padding=1),
+            conv(channels, 8, 3, stride=2, padding=1),
             nn.ReLU(True),
             conv(8, 16, 3, stride=2, padding=1),
             nn.ReLU(True),
@@ -116,7 +135,7 @@ class ShapeVAE(nn.Module):
             nn.ReLU(True),
             conv_T(16, 8, 3, stride=2, padding=1),
             nn.ReLU(True),
-            conv_T(8, 1, 2, stride=2, padding=1),
+            conv_T(8, channels, 2, stride=2, padding=1),
         )
 
         self.mu = nn.Linear(flat_shape, latent_dims)
