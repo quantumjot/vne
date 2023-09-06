@@ -38,13 +38,6 @@ class CustomMNIST(torch.utils.data.Dataset):
         image, label = self.dataset[idx]
         return image, label
 
-    # Define a function to apply random rotations and resize to 64x64
-    def random_rotate_and_resize(image):
-        angle = random.uniform(-30, 30)  # Random rotation angle between -30 and 30 degrees
-        image = transforms.functional.rotate(image, angle)
-        image = transforms.functional.resize(image, (64, 64))
-        return image
-
 
 
 
@@ -241,6 +234,13 @@ def padding(array, xx, yy, zz=None):
         array = np.pad(array, pad_width=((a, aa), (b, bb)), mode='constant')
     return array
 
+
+# Define a function to apply random rotations and resize to 64x64
+def random_rotate_and_resize(image):
+    angle = random.uniform(-45, 45)  # Random rotation angle between -30 and 30 degrees
+    image = transforms.functional.rotate(image, angle)
+    image = transforms.functional.resize(image, (64, 64))
+    return image
 
 
 
