@@ -25,9 +25,9 @@ NUM_IMAGES = 100
 class CustomMNIST(torch.utils.data.Dataset):
     def __init__(self, root, train=True):
         self.transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.5,), (0.5,)),
             transforms.Lambda(lambda x: random_rotate_and_resize(x)),
+            transforms.ToTensor(),
+            transforms.Normalize((0,), (1,)),
         ])
         self.dataset = datasets.MNIST(root=root, train=train, transform=self.transform, download=True)
 
