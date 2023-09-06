@@ -1,11 +1,51 @@
 from typing import Callable, Optional, Tuple
-
 import numpy as np
 import torch
 
 from . import simulate
 
+import torch
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+import random
+from PIL import Image
+
+import mrcfile
+import numpy as np
+from vne.special.alphanumeric_simulator import  alpha_num_Simulator
+
+import os
+import warnings
+
+
+
 NUM_IMAGES = 100
+
+
+class CustomMNIST(torch.utils.data.Dataset):
+    def __init__(self, root, train=True):
+        self.transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,)),
+            transforms.Lambda(lambda x: random_rotate_and_resize(x)),
+        ])
+        self.dataset = datasets.MNIST(root=root, train=train, transform=self.transform, download=True)
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        image, label = self.dataset[idx]
+        return image, label
+
+    # Define a function to apply random rotations and resize to 64x64
+    def random_rotate_and_resize(image):
+        angle = random.uniform(-30, 30)  # Random rotation angle between -30 and 30 degrees
+        image = transforms.functional.rotate(image, angle)
+        image = transforms.functional.resize(image, (64, 64))
+        return image
+
+
 
 
 class SimulatedDataset(torch.utils.data.Dataset):
@@ -102,3 +142,106 @@ class SimulatedDataset(torch.utils.data.Dataset):
 
     def __len__(self) -> int:
         return NUM_IMAGES
+
+
+
+class SubTomogram_dataset(torch.utils.data.Dataset):
+    def __init__(self,
+        root_dir,
+        IMAGES_PER_EPOCH,
+        molecule_list,
+        data_format
+        ):
+
+        self.IMAGES_PER_EPOCH = IMAGES_PER_EPOCH
+        self.root_dir = root_dir
+        self.paths = sorted([self.root_dir+f for f in os.listdir(root_dir) if "."+data_format in f and f[:1] in molecule_list]) # list of all the subtomos 
+        self.mol_id = sorted([f[:1] for f in os.listdir(root_dir) if "."+data_format in f and f[:1] in molecule_list]) # list of asbnotation molecule labels 
+        self.proteins = molecule_list # list of all the classes 
+
+    def __getitem__(self, idx):
+        ## read the subtomogram 
+        if  data_format=="npy":
+            data = np.load(self.paths[idx])
+
+        elif data_format=="mrc":
+            warnings.simplefilter('ignore') # to mute some warnings produced when opening the tomos
+
+            with mrcfile.open(self.paths[idx], mode='r+', permissive=True) as mrc:
+                mrc.header.map = mrcfile.constants.MAP_ID 
+                mrc = mrc.data       
+
+            with mrcfile.open(self.paths[idx]) as mrc:
+                data = np.array(mrc.data)
+
+        data = padding(data,64,64)
+        #### normalise the data convert to torch id and grab the molecule index
+        mol = NormalizeData(data)
+        mol = torch.as_tensor(mol[np.newaxis, ...], dtype=torch.float32)
+        mol_id = list(self.proteins).index(self.mol_id[idx])
+        return mol, mol_id
+    def keys(self):
+        return list(self.proteins)
+    def __len__(self):
+        return len(self.paths)
+
+
+class alphanumDataset(torch.utils.data.Dataset):
+    def __init__(self,THETA_0,THETA,molecule_list,simulator):
+        super().__init__()
+
+        self.molecules = molecule_list
+        self.min_theta = THETA_0
+        self.max_theta = THETA
+        self.simulator = simulator
+    def __getitem__(self, idx: int):
+        mol = np.random.choice(self.molecules)
+        angle = np.random.randint(self.min_theta,self.max_theta)
+        density = self.simulator(mol, transform_euler_angles=angle, project=True)
+        img = density
+        img = np.clip(img, -1, 1)
+        img = NormalizeData(img) 
+        img = torch.as_tensor(img[np.newaxis, ...], dtype=torch.float32)
+        return img, self.molecules.index(mol)
+    
+    def __len__(self):
+        return IMAGES_PER_EPOCH
+
+
+
+def NormalizeData(data):
+    return (data - np.min(data)) / (np.max(data) - np.min(data))
+
+
+def padding(array, xx, yy, zz=None):
+    """
+    :param array: numpy array
+    :param xx: desired height
+    :param yy: desirex width
+    :return: padded array
+    """
+
+    h = array.shape[0]
+    w = array.shape[1]
+    if zz is not None:
+        z = array.shape[2]
+
+    a = (xx - h) // 2
+    aa = xx - a - h
+
+    b = (yy - w) // 2
+    bb = yy - b - w
+    
+    if zz is not None:
+
+        c = (zz - z) // 2
+        cc = zz - c - z
+        array = np.pad(array, pad_width=((a, aa), (b, bb), (c, cc)), mode='constant')
+    else:
+        array = np.pad(array, pad_width=((a, aa), (b, bb)), mode='constant')
+    return array
+
+
+
+
+
