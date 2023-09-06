@@ -25,7 +25,7 @@ def plot_loss(loss_plot):
     plt.savefig("loss_vs_EPOCHS.png", dpi=144)
 
 
-def plot_umap(enc, molecule_list):
+def plot_umap(enc,lbl,epoch,  molecule_list):
     enc = np.concatenate(enc, axis=0)
 
     reducer = umap.UMAP()
@@ -49,8 +49,8 @@ def plot_umap(enc, molecule_list):
         
     #     ax.plot(x_enc[:, 0], x_enc[:, 1], 'ko', markersize=42)
     ax.legend()
-    ax.set_title(f'UMAP projection for beta = {BETA_FACT}', fontsize=24)
-    plt.savefig(f'{results}UMAP{epoch}.png', dpi=144)
+    ax.set_title(f'UMAP projection', fontsize=24)
+    plt.savefig(f'UMAP{epoch}.png', dpi=144)
 
 
 def to_img(x):

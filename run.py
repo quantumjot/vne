@@ -141,7 +141,7 @@ for epoch in range(EPOCHS):
 
 
 
-        plot_umap(enc,molecule_list)
+        plot_umap(enc, lbl,epoch,molecule_list)
         plot_loss(loss_plot)
 
 torch.save(model.state_dict(), './conv_autoencoder.pth')
