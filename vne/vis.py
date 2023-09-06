@@ -25,7 +25,7 @@ def plot_loss(loss_plot):
     plt.savefig("loss_vs_EPOCHS.png", dpi=144)
 
 
-def plot_umap(enc):
+def plot_umap(enc, molecule_list):
     enc = np.concatenate(enc, axis=0)
 
     reducer = umap.UMAP()

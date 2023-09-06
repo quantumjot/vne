@@ -134,14 +134,14 @@ for epoch in range(EPOCHS):
             for i in tqdm(range(1000)):
                 j = np.random.choice(range(len(dataset)))
                 img, img_id= dataset[j]
-                mu, log_var, pose = model.encode(img[np.newaxis,...].cuda())
+                mu, log_var, pose = model.encode(img[np.newaxis,...].to(device))
                 z = model.reparameterise(mu, log_var)
                 enc.append(z.cpu())
                 lbl.append(img_id)
 
 
 
-        plot_umap(enc)
+        plot_umap(enc,molecule_list)
         plot_loss(loss_plot)
 
 torch.save(model.state_dict(), './conv_autoencoder.pth')
