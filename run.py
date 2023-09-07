@@ -3,7 +3,6 @@ import numpy as np
 import torch
 from torch import nn
 from torch.autograd import Variable
-from torchvision import transforms
 from torchvision.utils import save_image
 from torch.utils.data import DataLoader
 
@@ -14,27 +13,40 @@ from vne.special.affinity_mat_create import similarity_matrix
 from vne.special.alphanumeric_simulator import  alpha_num_Simulator
 from vne.vis import plot_affinity, plot_loss,plot_umap, to_img
 from vne.dataset import alphanumDataset, SubTomogram_dataset, CustomMNIST
-
+from vne.read_config import get_config_values
 from tqdm import tqdm
-import umap
+import argparse
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+# Create a command line argument parser
+parser = argparse.ArgumentParser(description="Read and process a YAML configuration file.")
+parser.add_argument("--config_file", required=True, help="Path to the YAML configuration file")
+
+# Parse the command line arguments
+args = parser.parse_args()
+# Read the YAML file and store the variables
+yaml_file_path = args.config_file
+config_data = get_config_values(yaml_file_path)
 
 
-alpha_num_list = "aebdijkz2uv"
-aff_mat = "affinity.csv" #None
-data_nat = "mnist" #'alphanum'
-classes = 'classes.csv'
-BATCH_SIZE = 128
-LATENT_DIMS = 16
-LEARNING_RATE = 1e-2
+LATENT_DIMS = config_data.get('latent_dims')
+POSE_DIMS = config_data.get('pose_dims')
+EPOCHS = config_data.get('epochs')
+BATCH_SIZE = config_data.get('batch_size')
+LEARNING_RATE = config_data.get('learning_rate')
+alpha_num_list = config_data.get('alpha_num_list')
+data_nat = config_data.get('data_nature')
+classes = config_data.get('classes')
+aff_mat = config_data.get('affinity')
+datapath = config_data.get('datapath')
+GAMMA = config_data.get('gamma')
+BETA_FACT = config_data.get('beta_fact')
+data_format = config_data.get('data_format')
+
 KLD_WEIGHT = 1. / (64*64)
 BETA_FACT = 4
 BETA = BETA_FACT * KLD_WEIGHT
-GAMMA = 1
-POSE_DIMS = 1
-EPOCHS =150
 
 
 
@@ -66,9 +78,6 @@ elif data_nat=="subtomo":
 elif data_nat=="alphanum":
     dataset = alphanumDataset(-45,45, list(alpha_num_list), simulator)
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
-
-
-
 
 
 
