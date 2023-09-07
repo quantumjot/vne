@@ -32,9 +32,9 @@ LEARNING_RATE = 1e-2
 KLD_WEIGHT = 1. / (64*64)
 BETA_FACT = 4
 BETA = BETA_FACT * KLD_WEIGHT
-GAMMA = 10
+GAMMA = 1
 POSE_DIMS = 1
-EPOCHS =50
+EPOCHS =150
 
 
 
@@ -131,7 +131,7 @@ for epoch in range(EPOCHS):
         enc = []
         lbl = []
         with torch.inference_mode():
-            for i in tqdm(range(1000)):
+            for i in tqdm(range(5000)):
                 j = np.random.choice(range(len(dataset)))
                 img, img_id= dataset[j]
                 mu, log_var, pose = model.encode(img[np.newaxis,...].to(device))
@@ -139,11 +139,11 @@ for epoch in range(EPOCHS):
                 enc.append(z.cpu())
                 lbl.append(img_id)
 
-
-
         plot_umap(enc, lbl,epoch,molecule_list)
         plot_loss(loss_plot)
 
-torch.save(model.state_dict(), './conv_autoencoder.pth')
 
+
+torch.save(model.state_dict(), './conv_autoencoder.pth')
+plot_pose(model)
 # plot loss vs EPOCH

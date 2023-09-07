@@ -53,6 +53,22 @@ def plot_umap(enc,lbl,epoch,  molecule_list):
     plt.savefig(f'UMAP{epoch}.png', dpi=144)
 
 
+def plot_pose(model):
+    pose_angle = []
+    r = []
+
+    with torch.inference_mode(model):
+        for theta in range(-45,45):
+            y = dataset[3]
+            x, z, z_pose, mu, logvar = model(y[0][np.newaxis, ...].to(device=device))     
+            if theta % 5 == 0 : 
+                r.append(np.squeeze(x[0,0,...].cpu()))
+            pose_angle.append(z_pose[0,0].cpu().clone().numpy())
+
+    fig, ax = plt.subplots(2,1, figsize=(10,15))
+    ax1, ax2 = ax
+
+
 def to_img(x):
     x = 0.5 * (x + 1)
     x = x.clamp(0, 1) #. Clamps all elements in input into the range [ min, max ]. 
