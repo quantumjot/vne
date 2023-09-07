@@ -47,7 +47,7 @@ data_format = config_data.get('data_format')
 KLD_WEIGHT = 1. / (64*64)
 BETA_FACT = 4
 BETA = BETA_FACT * KLD_WEIGHT
-
+print(data_format,BETA_FACT,GAMMA,datapath,aff_mat,classes,data_nat,alpha_num_list,BATCH_SIZE,EPOCHS,POSE_DIMS,LATENT_DIMS)
 
 
 with open(classes, newline='') as molecule_list_file:
@@ -78,7 +78,8 @@ elif data_nat=="subtomo":
 elif data_nat=="alphanum":
     dataset = alphanumDataset(-45,45, list(alpha_num_list), simulator)
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
-
+else:
+    print("didnt define data_nat")
 
 
 x = dataset[0]
