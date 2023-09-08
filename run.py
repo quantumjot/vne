@@ -11,7 +11,7 @@ import csv
 from vne.vae import ShapeVAE, ShapeSimilarityLoss
 from vne.special.affinity_mat_create import similarity_matrix
 from vne.special.alphanumeric_simulator import  alpha_num_Simulator
-from vne.vis import plot_affinity, plot_loss,plot_umap, to_img
+from vne.vis import plot_affinity, plot_loss,plot_umap, to_img, plot_pose
 from vne.dataset import alphanumDataset, SubTomogram_dataset, CustomMNIST
 from vne.read_config import get_config_values
 from tqdm import tqdm
@@ -43,6 +43,7 @@ datapath = config_data.get('datapath')
 GAMMA = config_data.get('gamma')
 BETA_FACT = config_data.get('beta_fact')
 data_format = config_data.get('data_format')
+IMAGES_PER_EPOCH=10000
 
 KLD_WEIGHT = 1. / (64*64)
 BETA_FACT = 4
@@ -64,16 +65,14 @@ elif aff_mat:
 
 plot_affinity(lookup,molecule_list)
 
-
-
 if data_nat == "mnist":
     dataset = CustomMNIST(root='./data', train=True)
     test_dataset = CustomMNIST(root='./data', train=False)
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 elif data_nat=="subtomo":
-    dataset = SubTomogram_dataset(subtomo_path,IMAGES_PER_EPOCH, molecule_list)
-    dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, drop_last= True)
+    dataset = SubTomogram_dataset(datapath,IMAGES_PER_EPOCH, molecule_list,data_format)
+    dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
     molecule_list = dataset.keys()
 elif data_nat=="alphanum":
     dataset = alphanumDataset(-45,45, list(alpha_num_list), simulator)

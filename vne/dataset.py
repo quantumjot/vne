@@ -145,19 +145,20 @@ class SubTomogram_dataset(torch.utils.data.Dataset):
         molecule_list,
         data_format
         ):
-
+        
+        self.data_format = data_format
         self.IMAGES_PER_EPOCH = IMAGES_PER_EPOCH
         self.root_dir = root_dir
-        self.paths = sorted([self.root_dir+f for f in os.listdir(root_dir) if "."+data_format in f and f[:1] in molecule_list]) # list of all the subtomos 
-        self.mol_id = sorted([f[:1] for f in os.listdir(root_dir) if "."+data_format in f and f[:1] in molecule_list]) # list of asbnotation molecule labels 
+        self.paths = sorted([(os.path.join(root_dir, f)) for f in os.listdir(root_dir) if "."+data_format in f and f[:4] in molecule_list]) # list of all the subtomos 
+        self.mol_id = sorted([f[:4] for f in os.listdir(root_dir) if "."+data_format in f and f[:4] in molecule_list]) # list of asbnotation molecule labels 
         self.proteins = molecule_list # list of all the classes 
-
+        print(self.mol_id)
     def __getitem__(self, idx):
         ## read the subtomogram 
-        if  data_format=="npy":
+        if  self.data_format=="npy":
             data = np.load(self.paths[idx])
 
-        elif data_format=="mrc":
+        elif self.data_format=="mrc":
             warnings.simplefilter('ignore') # to mute some warnings produced when opening the tomos
 
             with mrcfile.open(self.paths[idx], mode='r+', permissive=True) as mrc:
@@ -198,7 +199,7 @@ class alphanumDataset(torch.utils.data.Dataset):
         return img, self.molecules.index(mol)
     
     def __len__(self):
-        return IMAGES_PER_EPOCH
+        return self.IMAGES_PER_EPOCH
 
 
 
