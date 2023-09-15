@@ -17,9 +17,12 @@ def plot_affinity(lookup,molecule_list):
 
 
 
-def plot_loss(loss_plot):
+def plot_loss(loss_plot,  kldloss_plot,sloss_plot):
     plt.figure(figsize=(16,16))
     plt.plot(loss_plot, linewidth=3)
+    plt.plot(kldloss_plot, linewidth=3)
+    plt.plot(sloss_plot, linewidth=3)
+
     plt.xlabel('EPOCHS')
     plt.ylabel('Total loss')
     plt.savefig("loss_vs_EPOCHS.png", dpi=144)

@@ -107,6 +107,7 @@ optimizer = torch.optim.Adam(
     weight_decay=1e-5)
 
 loss_plot =[]
+kldloss_plot = []
 # The loss was not converging when weight_decay = 10^-2 
 for epoch in range(EPOCHS):
     total_loss = 0
@@ -136,6 +137,9 @@ for epoch in range(EPOCHS):
         total_loss += loss.data
     # ===================log========================
     loss_plot.append(total_loss.cpu().clone().numpy())
+    kldloss_plot.append(kld_loss.cpu().clone().numpy())
+    sloss_plot.append(s_loss.cpu().clone().numpy())
+
     print(f"epoch [{epoch+1}/{EPOCHS}], loss:{total_loss:.4f}, {r_loss.data}, {s_loss.data}, {kld_loss.data}")
     if epoch % 10 == 0 or epoch == EPOCHS-1:
         pic = to_img(output.to(device).data)
@@ -154,7 +158,7 @@ for epoch in range(EPOCHS):
                 lbl.append(img_id)
 
         plot_umap(enc, lbl,epoch,molecule_list)
-        plot_loss(loss_plot)
+        plot_loss(loss_plot, kldloss_plot,sloss_plot)
 
 
 
