@@ -19,13 +19,14 @@ def plot_affinity(lookup,molecule_list):
 
 def plot_loss(loss_plot,  kldloss_plot,sloss_plot, rloss_plot):
     plt.figure(figsize=(16,16))
-    plt.plot(loss_plot, linewidth=3)
-    plt.plot(kldloss_plot, linewidth=3)
-    plt.plot(sloss_plot, linewidth=3)
-    plt.plot(rloss_plot, linewidth=3)
-
+    plt.plot(loss_plot, label="Total Loss", linewidth=3)
+    plt.plot(kldloss_plot, label="KLD Loss", linewidth=3)
+    plt.plot(sloss_plot, label="Similarity Loss", linewidth=3)
+    plt.plot(rloss_plot, label="reconstruction Loss", linewidth=3)
+    plt.yscale("log")
     plt.xlabel('EPOCHS')
-    plt.ylabel('Total loss')
+    plt.ylabel('Loss')
+    plt.legend()
     plt.savefig("loss_vs_EPOCHS.png", dpi=144)
 
 
