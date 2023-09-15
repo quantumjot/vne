@@ -88,10 +88,12 @@ else:
 
 
 x = dataset[0]
-fig = plt.figure()
-fig.colorbar(plt.imshow(np.squeeze(x[0].numpy())))
-#plt.imshow(to_img(x))
-fig.savefig('data_before_loss_calc.png', dpi=144)
+
+if not data_format=='mrc':
+    fig = plt.figure()
+    fig.colorbar(plt.imshow(np.squeeze(x[0].numpy())))
+    #plt.imshow(to_img(x))
+    fig.savefig('data_before_loss_calc.png', dpi=144)
 
 reconstruction_loss = nn.MSELoss() #Creates a criterion that measures the mean squared error (squared L2 norm) between each element in the input 
 similarity_loss = ShapeSimilarityLoss(lookup=torch.Tensor(lookup).to(device))
