@@ -43,14 +43,8 @@ datapath = config_data.get('datapath')
 GAMMA = config_data.get('gamma')
 BETA_FACT = config_data.get('beta_fact')
 data_format = config_data.get('data_format')
-<<<<<<< HEAD
 IMAGES_PER_EPOCH=10000
-
-=======
-IMAGES_PER_EPOCH = 10000
->>>>>>> remotes/origin/add_run
 KLD_WEIGHT = 1. / (64*64)
-BETA_FACT = 4
 BETA = BETA_FACT * KLD_WEIGHT
 print(data_format,BETA_FACT,GAMMA,datapath,aff_mat,classes,data_nat,alpha_num_list,BATCH_SIZE,EPOCHS,POSE_DIMS,LATENT_DIMS)
 
