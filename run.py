@@ -98,7 +98,7 @@ if not data_format=='mrc':
 reconstruction_loss = nn.MSELoss() #Creates a criterion that measures the mean squared error (squared L2 norm) between each element in the input 
 similarity_loss = ShapeSimilarityLoss(lookup=torch.Tensor(lookup).to(device))
 
-dims =dataset[0][0].shape
+dims =dataset[0][0].shape[1:]
 model = ShapeVAE(
     input_shape = dims,
     capacity = 8,
