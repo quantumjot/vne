@@ -43,8 +43,12 @@ datapath = config_data.get('datapath')
 GAMMA = config_data.get('gamma')
 BETA_FACT = config_data.get('beta_fact')
 data_format = config_data.get('data_format')
+<<<<<<< HEAD
 IMAGES_PER_EPOCH=10000
 
+=======
+IMAGES_PER_EPOCH = 10000
+>>>>>>> remotes/origin/add_run
 KLD_WEIGHT = 1. / (64*64)
 BETA_FACT = 4
 BETA = BETA_FACT * KLD_WEIGHT
@@ -75,8 +79,12 @@ elif data_nat=="subtomo":
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
     molecule_list = dataset.keys()
 elif data_nat=="alphanum":
-    dataset = alphanumDataset(-45,45, list(alpha_num_list), simulator)
+    dataset = alphanumDataset(-45,45, list(alpha_num_list),IMAGES_PER_EPOCH, alpha_num_Simulator)
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
+
+    test_dataset = alphanumDataset(-45,45, list(alpha_num_list+"v"),IMAGES_PER_EPOCH, alpha_num_Simulator)
+    test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)
+
 else:
     print("didnt define data_nat")
 
@@ -101,7 +109,10 @@ optimizer = torch.optim.Adam(
     lr=LEARNING_RATE,
     weight_decay=1e-5)
 
-loss_plot =[]
+loss_plot = []
+kldloss_plot = []
+sloss_plot = []
+rloss_plot = []
 # The loss was not converging when weight_decay = 10^-2 
 for epoch in range(EPOCHS):
     total_loss = 0
@@ -131,6 +142,10 @@ for epoch in range(EPOCHS):
         total_loss += loss.data
     # ===================log========================
     loss_plot.append(total_loss.cpu().clone().numpy())
+    kldloss_plot.append(BETA*kld_loss.cpu().clone().detach().numpy())
+    sloss_plot.append(GAMMA*s_loss.cpu().clone().detach().numpy())
+    rloss_plot.append(r_loss.cpu().clone().detach().numpy())
+
     print(f"epoch [{epoch+1}/{EPOCHS}], loss:{total_loss:.4f}, {r_loss.data}, {s_loss.data}, {kld_loss.data}")
     if epoch % 10 == 0 or epoch == EPOCHS-1:
         pic = to_img(output.to(device).data)
@@ -141,15 +156,15 @@ for epoch in range(EPOCHS):
         lbl = []
         with torch.inference_mode():
             for i in tqdm(range(5000)):
-                j = np.random.choice(range(len(dataset)))
-                img, img_id= dataset[j]
+                j = np.random.choice(range(len(test_dataset)))
+                img, img_id= test_dataset[j]
                 mu, log_var, pose = model.encode(img[np.newaxis,...].to(device))
                 z = model.reparameterise(mu, log_var)
                 enc.append(z.cpu())
                 lbl.append(img_id)
 
         plot_umap(enc, lbl,epoch,molecule_list)
-        plot_loss(loss_plot)
+        plot_loss(loss_plot, kldloss_plot,sloss_plot,rloss_plot)
 
 
 
