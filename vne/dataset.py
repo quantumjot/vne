@@ -149,6 +149,7 @@ class SubTomogram_dataset(torch.utils.data.Dataset):
         ## read the subtomogram 
         if self.data_format == "npy":
             data = np.load(self.paths[idx])
+            data = padding(data, 64, 64)
 
         elif self.data_format == "mrc":
             warnings.simplefilter('ignore')  # to mute some warnings produced when opening the tomos
@@ -160,7 +161,7 @@ class SubTomogram_dataset(torch.utils.data.Dataset):
             with mrcfile.open(self.paths[idx]) as mrc:
                 data = np.array(mrc.data)
 
-        data = padding(data, 64, 64)
+            data = padding(data, 64, 64, 64)
         #### normalise the data convert to torch id and grab the molecule index
         mol = NormalizeData(data)
         mol = torch.as_tensor(mol[np.newaxis, ...], dtype=torch.float32)

@@ -40,6 +40,7 @@ data_nat = config_data.get('data_nature')
 classes = config_data.get('classes')
 aff_mat = config_data.get('affinity')
 datapath = config_data.get('datapath')
+datapath_test = config_data.get('datapath_test')
 GAMMA = config_data.get('gamma')
 BETA_FACT = config_data.get('beta_fact')
 data_format = config_data.get('data_format')
@@ -67,10 +68,13 @@ if data_nat == "mnist":
     dataset = CustomMNIST(root='./data', train=True)
     test_dataset = CustomMNIST(root='./data', train=False)
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 elif data_nat=="subtomo":
     dataset = SubTomogram_dataset(datapath,IMAGES_PER_EPOCH, molecule_list,data_format)
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
+
+    test_dataset = SubTomogram_dataset(datapath_test,IMAGES_PER_EPOCH, molecule_list,data_format)
+    test_dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
     molecule_list = dataset.keys()
 elif data_nat=="alphanum":
     dataset = alphanumDataset(-45,45, list(alpha_num_list),IMAGES_PER_EPOCH, alpha_num_Simulator)
@@ -147,7 +151,9 @@ for epoch in range(EPOCHS):
 
 
         enc = []
+        enc_train = []
         lbl = []
+        lbl_train = []
         with torch.inference_mode():
             for i in tqdm(range(5000)):
                 j = np.random.choice(range(len(test_dataset)))
@@ -157,7 +163,16 @@ for epoch in range(EPOCHS):
                 enc.append(z.cpu())
                 lbl.append(img_id)
 
-        plot_umap(enc, lbl,epoch,molecule_list)
+                k = np.random.choice(range(len(dataset)))
+                img, img_id= dataset[k]
+                mu, log_var, pose = model.encode(img[np.newaxis,...].to(device))
+                z = model.reparameterise(mu, log_var)
+                enc.append(z.cpu())
+                lbl.append(img_id)
+
+
+        plot_umap(enc, lbl,epoch,molecule_list, f"UMAP_test{epoch}")
+        plot_umap(enc_train, lbl_train,epoch,molecule_list, f"UMAP_train{epoch}")
         plot_loss(loss_plot, kldloss_plot,sloss_plot,rloss_plot)
 
 
