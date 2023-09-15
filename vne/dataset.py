@@ -1,23 +1,16 @@
 from typing import Callable, Optional, Tuple
-import numpy as np
-import torch
-
 from . import simulate
 
 import torch
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import random
-from PIL import Image
 
 import mrcfile
 import numpy as np
-from vne.special.alphanumeric_simulator import  alpha_num_Simulator
 
 import os
 import warnings
-
-
 
 NUM_IMAGES = 100
 
@@ -37,8 +30,6 @@ class CustomMNIST(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         image, label = self.dataset[idx]
         return image, label
-
-
 
 
 class SimulatedDataset(torch.utils.data.Dataset):
@@ -65,14 +56,14 @@ class SimulatedDataset(torch.utils.data.Dataset):
     """
 
     def __init__(
-        self,
-        preprocessor: Optional[Callable] = None,
-        simulator: Callable = simulate.create_heterogeneous_image,
-        n_objects: Tuple[int] = (50, 150),
-        size: Tuple[int] = (512, 512),
-        return_masks: bool = False,
-        transforms=None,
-        rng=np.random.default_rng(),
+            self,
+            preprocessor: Optional[Callable] = None,
+            simulator: Callable = simulate.create_heterogeneous_image,
+            n_objects: Tuple[int] = (50, 150),
+            size: Tuple[int] = (512, 512),
+            return_masks: bool = False,
+            transforms=None,
+            rng=np.random.default_rng(),
     ):
         super().__init__()
         self.transforms = transforms
@@ -86,7 +77,6 @@ class SimulatedDataset(torch.utils.data.Dataset):
         self.rng = rng
 
     def __getitem__(self, idx: int) -> Tuple[torch.tensor, dict, int]:
-
         n_objects = self.rng.integers(*self.n_objects)
 
         img, boxes, labels = self.simulator(
@@ -137,51 +127,55 @@ class SimulatedDataset(torch.utils.data.Dataset):
         return NUM_IMAGES
 
 
-
 class SubTomogram_dataset(torch.utils.data.Dataset):
     def __init__(self,
-        root_dir,
-        IMAGES_PER_EPOCH,
-        molecule_list,
-        data_format
-        ):
-        
+                 root_dir,
+                 IMAGES_PER_EPOCH,
+                 molecule_list,
+                 data_format
+                 ):
+
         self.data_format = data_format
         self.image_per_epoch = IMAGES_PER_EPOCH
         self.root_dir = root_dir
-        self.paths = sorted([(os.path.join(root_dir, f)) for f in os.listdir(root_dir) if "."+data_format in f and f[:4] in molecule_list]) # list of all the subtomos 
-        self.mol_id = sorted([f[:4] for f in os.listdir(root_dir) if "."+data_format in f and f[:4] in molecule_list]) # list of asbnotation molecule labels 
-        self.proteins = molecule_list # list of all the classes 
+        self.paths = sorted([(os.path.join(root_dir, f)) for f in os.listdir(root_dir) if
+                             "." + data_format in f and f[:4] in molecule_list])  # list of all the subtomos
+        self.mol_id = sorted([f[:4] for f in os.listdir(root_dir) if "." + data_format in f and f[
+                                                                                                :4] in molecule_list])  # list of asbnotation molecule labels
+        self.proteins = molecule_list  # list of all the classes
         print(self.mol_id)
+
     def __getitem__(self, idx):
         ## read the subtomogram 
-        if  self.data_format=="npy":
+        if self.data_format == "npy":
             data = np.load(self.paths[idx])
 
-        elif self.data_format=="mrc":
-            warnings.simplefilter('ignore') # to mute some warnings produced when opening the tomos
+        elif self.data_format == "mrc":
+            warnings.simplefilter('ignore')  # to mute some warnings produced when opening the tomos
 
             with mrcfile.open(self.paths[idx], mode='r+', permissive=True) as mrc:
-                mrc.header.map = mrcfile.constants.MAP_ID 
-                mrc = mrc.data       
+                mrc.header.map = mrcfile.constants.MAP_ID
+                mrc = mrc.data
 
             with mrcfile.open(self.paths[idx]) as mrc:
                 data = np.array(mrc.data)
 
-        data = padding(data,64,64)
+        data = padding(data, 64, 64)
         #### normalise the data convert to torch id and grab the molecule index
         mol = NormalizeData(data)
         mol = torch.as_tensor(mol[np.newaxis, ...], dtype=torch.float32)
         mol_id = list(self.proteins).index(self.mol_id[idx])
         return mol, mol_id
+
     def keys(self):
         return list(self.proteins)
+
     def __len__(self):
         return len(self.paths)
 
 
 class alphanumDataset(torch.utils.data.Dataset):
-    def __init__(self,THETA_0,THETA,molecule_list, IMAGES_PER_EPOCH,simulator):
+    def __init__(self, THETA_0, THETA, molecule_list, IMAGES_PER_EPOCH, simulator):
         super().__init__()
 
         self.molecules = molecule_list
@@ -189,19 +183,19 @@ class alphanumDataset(torch.utils.data.Dataset):
         self.max_theta = THETA
         self.simulator = simulator(molecule_list)
         self.image_per_epoch = IMAGES_PER_EPOCH
+
     def __getitem__(self, idx: int):
         mol = np.random.choice(self.molecules)
-        angle = np.random.randint(self.min_theta,self.max_theta)
+        angle = np.random.randint(self.min_theta, self.max_theta)
         density = self.simulator(mol, transform_euler_angles=angle, project=True)
         img = density
         img = np.clip(img, -1, 1)
-        img = NormalizeData(img) 
+        img = NormalizeData(img)
         img = torch.as_tensor(img[np.newaxis, ...], dtype=torch.float32)
         return img, self.molecules.index(mol)
-    
+
     def __len__(self):
         return self.image_per_epoch
-
 
 
 def NormalizeData(data):
@@ -213,6 +207,7 @@ def padding(array, xx, yy, zz=None):
     :param array: numpy array
     :param xx: desired height
     :param yy: desirex width
+    :param zz: desired depth
     :return: padded array
     """
 
@@ -226,7 +221,7 @@ def padding(array, xx, yy, zz=None):
 
     b = (yy - w) // 2
     bb = yy - b - w
-    
+
     if zz is not None:
 
         c = (zz - z) // 2
@@ -243,7 +238,3 @@ def random_rotate_and_resize(image):
     image = transforms.functional.rotate(image, angle)
     image = transforms.functional.resize(image, (64, 64))
     return image
-
-
-
-
