@@ -106,8 +106,9 @@ optimizer = torch.optim.Adam(
     lr=LEARNING_RATE,
     weight_decay=1e-5)
 
-loss_plot =[]
+loss_plot = []
 kldloss_plot = []
+sloss_plot = []
 # The loss was not converging when weight_decay = 10^-2 
 for epoch in range(EPOCHS):
     total_loss = 0
