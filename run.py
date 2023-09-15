@@ -148,8 +148,17 @@ for epoch in range(EPOCHS):
 
     print(f"epoch [{epoch+1}/{EPOCHS}], loss:{total_loss:.4f}, {r_loss.data}, {s_loss.data}, {kld_loss.data}")
     if epoch % 10 == 0 or epoch == EPOCHS-1:
-        pic = to_img(output.to(device).data)
-        save_image(pic, './image_{}.png'.format(epoch))
+
+        if data_format!="mrc":
+
+            pic = to_img(output.to(device).data)
+            save_image(pic, './image_{}.png'.format(epoch))
+
+        elif data_format=="mrc":
+            mrcfile.write(f'./{epoch}_r{molecule_list[mol_id[0]]}.mrc', output[0,0,:,:,:].cpu().detach().numpy(), overwrite=True )
+            mrcfile.write(f'./{epoch}_o{molecule_list[mol_id[0]]}.mrc', img[0,0,:,:,:].cpu().detach().numpy(), overwrite=True )
+
+
 
 
         enc = []
