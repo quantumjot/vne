@@ -180,13 +180,14 @@ class SubTomogram_dataset(torch.utils.data.Dataset):
 
 
 class alphanumDataset(torch.utils.data.Dataset):
-    def __init__(self,THETA_0,THETA,molecule_list,simulator):
+    def __init__(self,THETA_0,THETA,molecule_list, IMAGES_PER_EPOCH,simulator):
         super().__init__()
 
         self.molecules = molecule_list
         self.min_theta = THETA_0
         self.max_theta = THETA
-        self.simulator = simulator
+        self.simulator = simulator(molecule_list)
+        self.image_per_epoch = IMAGES_PER_EPOCH
     def __getitem__(self, idx: int):
         mol = np.random.choice(self.molecules)
         angle = np.random.randint(self.min_theta,self.max_theta)
@@ -198,7 +199,7 @@ class alphanumDataset(torch.utils.data.Dataset):
         return img, self.molecules.index(mol)
     
     def __len__(self):
-        return IMAGES_PER_EPOCH
+        return self.image_per_epoch
 
 
 

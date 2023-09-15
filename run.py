@@ -43,7 +43,7 @@ datapath = config_data.get('datapath')
 GAMMA = config_data.get('gamma')
 BETA_FACT = config_data.get('beta_fact')
 data_format = config_data.get('data_format')
-
+IMAGES_PER_EPOCH = 10000
 KLD_WEIGHT = 1. / (64*64)
 BETA_FACT = 4
 BETA = BETA_FACT * KLD_WEIGHT
@@ -76,8 +76,12 @@ elif data_nat=="subtomo":
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True, drop_last= True)
     molecule_list = dataset.keys()
 elif data_nat=="alphanum":
-    dataset = alphanumDataset(-45,45, list(alpha_num_list), simulator)
+    dataset = alphanumDataset(-45,45, list(alpha_num_list),IMAGES_PER_EPOCH, alpha_num_Simulator)
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
+
+    test_dataset = alphanumDataset(-45,45, list(alpha_num_list+"v"),IMAGES_PER_EPOCH, alpha_num_Simulator)
+    test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)
+
 else:
     print("didnt define data_nat")
 
@@ -142,8 +146,8 @@ for epoch in range(EPOCHS):
         lbl = []
         with torch.inference_mode():
             for i in tqdm(range(5000)):
-                j = np.random.choice(range(len(dataset)))
-                img, img_id= dataset[j]
+                j = np.random.choice(range(len(test_dataset)))
+                img, img_id= test_dataset[j]
                 mu, log_var, pose = model.encode(img[np.newaxis,...].to(device))
                 z = model.reparameterise(mu, log_var)
                 enc.append(z.cpu())
