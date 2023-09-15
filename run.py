@@ -99,8 +99,11 @@ reconstruction_loss = nn.MSELoss() #Creates a criterion that measures the mean s
 similarity_loss = ShapeSimilarityLoss(lookup=torch.Tensor(lookup).to(device))
 
 model = ShapeVAE(
-    latent_dims=LATENT_DIMS,
-    pose_dims=POSE_DIMS,
+    input_shape = dataset[0].shape() ,
+    capacity = 8,
+    depth = 4,
+    latent_dims = LATENT_DIMS,
+    pose_dims = POSE_DIMS,
 ).to(device)
 
 
