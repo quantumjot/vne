@@ -147,7 +147,7 @@ class SubTomogram_dataset(torch.utils.data.Dataset):
         ):
         
         self.data_format = data_format
-        self.IMAGES_PER_EPOCH = IMAGES_PER_EPOCH
+        self.image_per_epoch = IMAGES_PER_EPOCH
         self.root_dir = root_dir
         self.paths = sorted([(os.path.join(root_dir, f)) for f in os.listdir(root_dir) if "."+data_format in f and f[:4] in molecule_list]) # list of all the subtomos 
         self.mol_id = sorted([f[:4] for f in os.listdir(root_dir) if "."+data_format in f and f[:4] in molecule_list]) # list of asbnotation molecule labels 
@@ -200,11 +200,7 @@ class alphanumDataset(torch.utils.data.Dataset):
         return img, self.molecules.index(mol)
     
     def __len__(self):
-<<<<<<< HEAD
-        return self.IMAGES_PER_EPOCH
-=======
         return self.image_per_epoch
->>>>>>> remotes/origin/add_run
 
 
 
