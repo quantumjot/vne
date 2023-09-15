@@ -137,8 +137,8 @@ for epoch in range(EPOCHS):
         total_loss += loss.data
     # ===================log========================
     loss_plot.append(total_loss.cpu().clone().numpy())
-    kldloss_plot.append(kld_loss.cpu().clone().numpy())
-    sloss_plot.append(s_loss.cpu().clone().numpy())
+    kldloss_plot.append(kld_loss.cpu().clone().detach().numpy())
+    sloss_plot.append(s_loss.cpu().clone().detach().numpy())
 
     print(f"epoch [{epoch+1}/{EPOCHS}], loss:{total_loss:.4f}, {r_loss.data}, {s_loss.data}, {kld_loss.data}")
     if epoch % 10 == 0 or epoch == EPOCHS-1:
