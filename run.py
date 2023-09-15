@@ -88,7 +88,7 @@ else:
 
 
 x = dataset[0]
-
+print(x[0].shape)
 if not data_format=='mrc':
     fig = plt.figure()
     fig.colorbar(plt.imshow(np.squeeze(x[0].numpy())))
@@ -98,8 +98,9 @@ if not data_format=='mrc':
 reconstruction_loss = nn.MSELoss() #Creates a criterion that measures the mean squared error (squared L2 norm) between each element in the input 
 similarity_loss = ShapeSimilarityLoss(lookup=torch.Tensor(lookup).to(device))
 
+dims =dataset[0][0].shape
 model = ShapeVAE(
-    input_shape = dataset[0].shape() ,
+    input_shape = dims,
     capacity = 8,
     depth = 4,
     latent_dims = LATENT_DIMS,
