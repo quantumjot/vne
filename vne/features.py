@@ -11,9 +11,9 @@ lmax = 9
 soap = SOAP(
     species=species,
     periodic=False,
-    rcut=rcut,
-    nmax=nmax,
-    lmax=lmax,
+    r_cut=rcut,
+    n_max=nmax,
+    l_max=lmax,
 )
 
 
@@ -70,6 +70,6 @@ def image_to_features(image: np.array) -> np.array:
     atoms = image_to_atoms(image)
     features = soap.create(
         atoms,
-        positions=[positions],
+        centers=[positions],
     )
     return features  # normalize(features)
