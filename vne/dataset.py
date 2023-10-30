@@ -138,30 +138,35 @@ class SubTomogram_dataset(torch.utils.data.Dataset):
         self.data_format = data_format
         self.image_per_epoch = IMAGES_PER_EPOCH
         self.root_dir = root_dir
-        self.paths = sorted([(os.path.join(root_dir, f)) for f in os.listdir(root_dir) if
-                             "." + data_format in f and f[:4] in molecule_list])  # list of all the subtomos
-        self.mol_id = sorted([f[:4] for f in os.listdir(root_dir) if "." + data_format in f and f[
-                                                                                                :4] in molecule_list])  # list of asbnotation molecule labels
+        self.paths = [
+            f for f in os.listdir(root_dir) if "." + self.data_format in f and f[:1] in molecule_list
+        ]
+
+        random.shuffle(self.paths)
+        ids = np.unique([f.split("_")[0] for f in self.paths])
+        self.mol_id = [f[:1] for f in self.paths if "." + self.data_format in f and f[:1] in molecule_list]
+
+        print(molecule_list)
         self.proteins = molecule_list  # list of all the classes
-        print(self.mol_id)
 
     def __getitem__(self, idx):
         ## read the subtomogram 
         if self.data_format == "npy":
-            data = np.load(self.paths[idx])
-            data = padding(data, 64, 64)
+            data = np.load(os.path.join(self.root_dir,self.paths[idx]))
+            data = padding(data, 32, 32)
 
         elif self.data_format == "mrc":
             warnings.simplefilter('ignore')  # to mute some warnings produced when opening the tomos
 
-            with mrcfile.open(self.paths[idx], mode='r+', permissive=True) as mrc:
+            with mrcfile.open(os.path.join(self.root_dir,self.paths[idx]), mode='r+', permissive=True) as mrc:
                 mrc.header.map = mrcfile.constants.MAP_ID
                 mrc = mrc.data
 
-            with mrcfile.open(self.paths[idx]) as mrc:
+            with mrcfile.open(os.path.join(self.root_dir,self.paths[idx])) as mrc:
                 data = np.array(mrc.data)
 
-            data = padding(data, 64, 64, 64)
+            data = padding(data, 32, 32, 32)
+            
         #### normalise the data convert to torch id and grab the molecule index
         mol = NormalizeData(data)
         mol = torch.as_tensor(mol[np.newaxis, ...], dtype=torch.float32)

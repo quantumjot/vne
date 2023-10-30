@@ -47,7 +47,7 @@ data_format = config_data.get('data_format')
 IMAGES_PER_EPOCH=10000
 KLD_WEIGHT = 1. / (64*64)
 BETA = BETA_FACT * KLD_WEIGHT
-print(data_format,BETA_FACT,GAMMA,datapath,aff_mat,classes,data_nat,alpha_num_list,BATCH_SIZE,EPOCHS,POSE_DIMS,LATENT_DIMS)
+print(data_format, BETA_FACT, GAMMA, datapath, aff_mat, classes, data_nat, alpha_num_list, BATCH_SIZE, EPOCHS, POSE_DIMS, LATENT_DIMS)
 
 
 with open(classes, newline='') as molecule_list_file:
@@ -100,9 +100,6 @@ similarity_loss = ShapeSimilarityLoss(lookup=torch.Tensor(lookup).to(device))
 
 dims =dataset[0][0].shape[1:]
 model = ShapeVAE(
-    input_shape = dims,
-    capacity = 8,
-    depth = 4,
     latent_dims = LATENT_DIMS,
     pose_dims = POSE_DIMS,
 ).to(device)
@@ -138,7 +135,8 @@ for epoch in range(EPOCHS):
         # similarity loss
         s_loss = similarity_loss(mol_id, mu)
         
-        loss = r_loss + (GAMMA * s_loss) + (BETA * kld_loss)      
+        loss = r_loss + (GAMMA * s_loss) + (BETA * kld_loss)
+        print(loss)
         # ===================backward====================
         optimizer.zero_grad() # set the gradient of all optimised torch.tensors to zero
         loss.backward()
@@ -150,7 +148,7 @@ for epoch in range(EPOCHS):
     sloss_plot.append(GAMMA*s_loss.cpu().clone().detach().numpy())
     rloss_plot.append(r_loss.cpu().clone().detach().numpy())
 
-    print(f"epoch [{epoch+1}/{EPOCHS}], loss:{total_loss:.4f}, {r_loss.data}, {s_loss.data}, {kld_loss.data}")
+    print(f"epoch [{epoch+1}/{EPOCHS}], loss:{total_loss:.4f}, reconstruction : {r_loss.data}, Affinity: {s_loss.data}, KLD: {kld_loss.data}")
     if epoch % 10 == 0 or epoch == EPOCHS-1:
 
         if data_format!="mrc":
@@ -161,9 +159,6 @@ for epoch in range(EPOCHS):
         elif data_format=="mrc":
             mrcfile.write(f'./{epoch}_r{molecule_list[mol_id[0]]}.mrc', output[0,0,:,:,:].cpu().detach().numpy(), overwrite=True )
             mrcfile.write(f'./{epoch}_o{molecule_list[mol_id[0]]}.mrc', img[0,0,:,:,:].cpu().detach().numpy(), overwrite=True )
-
-
-
 
         enc = []
         enc_train = []
@@ -182,8 +177,8 @@ for epoch in range(EPOCHS):
                 img, img_id= dataset[k]
                 mu, log_var, pose = model.encode(img[np.newaxis,...].to(device))
                 z = model.reparameterise(mu, log_var)
-                enc.append(z.cpu())
-                lbl.append(img_id)
+                enc_train.append(z.cpu())
+                lbl_train.append(img_id)
 
 
         plot_umap(enc, lbl,epoch,molecule_list, f"UMAP_test{epoch}")

@@ -33,7 +33,7 @@ def plot_loss(loss_plot,  kldloss_plot,sloss_plot, rloss_plot):
 def plot_umap(enc,lbl,epoch,  molecule_list, filename):
     enc = np.concatenate(enc, axis=0)
 
-    reducer = umap.UMAP()
+    reducer = umap.UMAP(random_state=42)
     embedding = reducer.fit_transform(enc)
 
 
