@@ -134,7 +134,6 @@ class AffinityVAE(torch.nn.Module):
 
         self.encoder = encoder
         self.decoder = decoder
-
         self.latent_dims = latent_dims
         self.pose_channels = pose_channels
 
@@ -253,3 +252,21 @@ class ShapeVAE(torch.nn.Module):
 
     def decode(self, x: torch.Tensor) -> torch.Tensor:
         return self.decoder(x)
+
+
+def dims_after_pooling(start: int, n_pools: int) -> int:
+    """Calculate the size of a layer after n pooling ops.
+
+    Parameters
+    ----------
+    start: int
+        The size of the layer before pooling.
+    n_pools: int
+        The number of pooling operations.
+
+    Returns
+    -------
+    dims: int
+        The size of the layer after pooling.
+    """
+    return start // (2**n_pools)
