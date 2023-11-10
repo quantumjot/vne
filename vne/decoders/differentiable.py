@@ -43,6 +43,7 @@ class GaussianSplatRenderer(BaseDecoder):
 
         self.coords = (
             torch.stack([torch.ravel(grid) for grid in grids], axis=0)
+            .transpose(0, 1)
             .unsqueeze(0)
             .to(device)
         )
@@ -91,14 +92,14 @@ class GaussianSplatRenderer(BaseDecoder):
         sigmas = sigmas * (max_sigma - min_sigma) + min_sigma
 
         # transpose keeping batch intact
-        coords_t = torch.swapaxes(self.coords, 1, 2)
+        # coords_t = torch.swapaxes(self.coords, 1, 2)
         splats_t = torch.swapaxes(splats, 1, 2)
 
         # calculate D^2 for all combinations of voxel and gaussian
         D_squared = torch.sum(
-            coords_t[:, :, None, :] ** 2 + splats_t[:, None, :, :] ** 2,
+            self.coords[:, :, None, :] ** 2 + splats_t[:, None, :, :] ** 2,
             axis=-1,
-        ) - 2 * torch.matmul(coords_t, splats)
+        ) - 2 * torch.matmul(self.coords, splats)
 
         # scale the gaussians
         sigmas = 2.0 * sigmas[:, None, :] ** 2
@@ -211,7 +212,11 @@ class GaussianSplatDecoder(BaseDecoder):
                 else torch.nn.Conv3d
             )
             self._decoder = torch.nn.Sequential(
-                conv(1, output_channels, 7, padding="same"),
+                conv(1, 32, 3, padding="same"),
+                torch.nn.ReLU(),
+                conv(32, 32, 3, padding="same"),
+                torch.nn.ReLU(),
+                conv(32, output_channels, 3, padding="same"),
             )
 
     def configure_renderer(
@@ -285,7 +290,13 @@ class GaussianSplatDecoder(BaseDecoder):
 
         return rotated_splats, weights, sigmas
 
-    def forward(self, z: torch.Tensor, pose: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self,
+        z: torch.Tensor,
+        pose: torch.Tensor,
+        *,
+        use_final_convolution: bool = True,
+    ) -> torch.Tensor:
         """Decode the latents to an image volume given an explicit transform.
 
         Parameters
@@ -296,6 +307,10 @@ class GaussianSplatDecoder(BaseDecoder):
         pose : tensor
             An (N, 1 | 4) tensor specifying the pose in terms of a single
             rotation (assumed around the z-axis) or a full axis-angle rotation.
+        use_final_convolution: bool
+            Whether to apply the final convolutional layers to recover the image.
+            This can be useful to inspect the underlying structure in a trained
+            model.
 
         Returns
         -------
@@ -311,7 +326,7 @@ class GaussianSplatDecoder(BaseDecoder):
         )
 
         # if we're doing a final convolution, do it here
-        if self._output_channels is not None:
+        if self._output_channels is not None and use_final_convolution:
             x = self._decoder(x)
 
         return x
