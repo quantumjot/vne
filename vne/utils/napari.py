@@ -25,6 +25,7 @@ def process(
     pose: float,
     *,
     device: torch.device = torch.device("cpu"),
+    use_conv: bool = False,
 ) -> npt.NDArray:
     z = torch.tensor(
         np.array([z], dtype=np.float32),
@@ -36,7 +37,7 @@ def process(
     )
 
     with torch.inference_mode():
-        x = model.decode(z, pose)
+        x = model.decoder.forward(z, pose, use_final_convolution=use_conv)
 
     return x.squeeze().cpu().numpy()
 
@@ -116,9 +117,13 @@ class GenerativeAffinityVAEWidget(QtWidgets.QWidget):
         pose_value.setValue(500)
         pose_value.setMinimumWidth(300)
 
+        use_conv = QtWidgets.QCheckBox()
+        use_conv.setText("Use final convolution")
+
         pose_widgets = {
             "axes": pose_axes,
             "theta": pose_value,
+            "use_conv": use_conv,
         }
 
         self._widgets.update(pose_widgets)
@@ -127,7 +132,10 @@ class GenerativeAffinityVAEWidget(QtWidgets.QWidget):
         for label, widget in pose_widgets.items():
             if label == "theta":
                 widget.valueChanged.connect(self.update_reconstruction)
-            label_widget = QtWidgets.QLabel(label)
+            if label != "use_conv":
+                label_widget = QtWidgets.QLabel(label)
+            else:
+                label_widget = QtWidgets.QLabel()
             layout.addRow(label_widget, widget)
 
         pose_widget = QtWidgets.QGroupBox("Pose")
@@ -211,8 +219,13 @@ class GenerativeAffinityVAEWidget(QtWidgets.QWidget):
         ]
 
         pose = self.get_pose()
+        use_conv = self._widgets["use_conv"].isChecked()
         self._layer.data = process(
-            self._model, inv_transformed_points, pose, device=self._device
+            self._model,
+            inv_transformed_points,
+            pose,
+            device=self._device,
+            use_conv=use_conv,
         )
 
         for idx in range(self._latent_dims):
@@ -222,7 +235,10 @@ class GenerativeAffinityVAEWidget(QtWidgets.QWidget):
 
     def update_reconstruction(self) -> None:
         pose, z = self.get_state()
-        self._layer.data = process(self._model, z, pose, device=self._device)
+        use_conv = self._widgets["use_conv"].isChecked()
+        self._layer.data = process(
+            self._model, z, pose, device=self._device, use_conv=use_conv
+        )
 
     def set_embedding(
         self,
