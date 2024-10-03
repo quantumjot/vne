@@ -53,7 +53,6 @@ class SimulatedDataset(torch.utils.data.Dataset):
         self.rng = rng
 
     def __getitem__(self, idx: int) -> Tuple[torch.tensor, dict, int]:
-
         n_objects = self.rng.integers(*self.n_objects)
 
         img, boxes, labels = self.simulator(
