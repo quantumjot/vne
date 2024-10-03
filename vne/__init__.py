@@ -1,1 +1,1 @@
-from .model import VNEModel
+from .model import VNEModel  # NOQA: F401
